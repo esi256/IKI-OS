@@ -21,3 +21,13 @@ exit:
     /* Should change this line to support privilaged and unprivilaged tasks */
     msr psp, r0
     bx lr 
+
+    .global enable_interrupts
+    .type enable_interrupts, %function
+enable_interrupts:
+    CPSIE I
+
+    .global disable_interrupts
+    .type disable_interrupts, %function
+disable_interrupts:
+    CPSID I

@@ -30,7 +30,7 @@ void timer_reset(void)
     SysTick->VAL = 0;
 }
 
-void timer_start(void)
+void timer_enable(void)
 {
     timer_reset();
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;

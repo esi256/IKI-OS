@@ -44,8 +44,3 @@ uint8_t mpu_init(void)
     MPU->CTRL |= MPU_CTRL_PRIVDEFENA_Msk;
     MPU->CTRL &= ~MPU_CTRL_HFNMIENA_Msk;
 }
-
-void MemManage_Handler(void)
-{
-    kwrite("exception", 10);
-}

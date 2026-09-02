@@ -116,46 +116,6 @@ Default_Handler:
 Infinite_Loop:
   b Infinite_Loop
   .size Default_Handler, .-Default_Handler
-
-  .type systick_handler, %function
-  .extern cur_proc_pointer
-  .extern select_next_proc
-  .extern timer_reset
-systick_handler:
-  CPSID I
-  /* Save The Contents */
-  cmp lr, #4
-  ite ne
-  mrsne r0, psp
-  mrseq r0, msp
-  stmdb r0!, {r4-r11}
-  ite ne
-  msrne psp, r0
-  msreq msp, r0
-  ldr r1, =cur_proc_pointer
-  ldr r1, [r1]
-  str r0, [r1]
-  str lr, [r1, #4]
-  
-/* Selcet the next process */
-  bl select_next_proc
-  ldr r0, =cur_proc_pointer
-  ldr r0, [r0]
-  ldr lr, [r0, #4]
-  mov r1, lr
-  /* Gettign the actual value of sp*/
-  ldr r3, [r0]
-
-  /* Load the Contents*/
-  ldmia r3!, {r4-r11}
-  cmp lr, #4
-  ite ne
-  msrne psp, r3
-  msreq msp, r3
-  bl timer_reset
-  mov lr, r1
-  CPSIE I
-  bx lr
  
 /******************************************************************************
 *
@@ -179,7 +139,7 @@ g_pfnVectors:
   .word	0
   .word	0
   .word	0
-  .word	SVC_Handler
+  .word	svc_handler
   .word	DebugMon_Handler
   .word	0
   .word	PendSV_Handler

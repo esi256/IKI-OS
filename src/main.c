@@ -2,8 +2,9 @@
 #include <mem.h>
 #include <mpu.h>
 #include <process.h>
-#include <task1.h>
+#include <uprocs.h>
 #include <timer.h>
+#include <io.h>
 
 void kernel_main(void)
 {
@@ -16,20 +17,18 @@ int main(void)
     GPIOB->MODER &= ~(0xF << (2 * 6));
     GPIOB->MODER |= (0xA << (2 * 6));
     GPIOB->AFR[0] |= 0x77 << (4*6);
-    char buf[] = "timer error\n";
 
+    NVIC_SetPriority(PendSV_IRQn, 0xFF);
+    NVIC_SetPriority(SVCall_IRQn, 0xFF);
+    NVIC_SetPriority(SysTick_IRQn, 0x02);
     heap_region_allocate();
     init_global_config();
     init_kernel_proc(&kernel_main);
-    if (!timer_initialize()) {
-        kwrite(buf, 13);
-    }
-    timer_set(80);
-
-    start(); 
-    
-    if (tsk_glob.is_ready)
-        run_procs();
+    timer_initialize();
+    timer_set(10);
+    syscalls_init();
+    start();  
+    run_procs();
     
     while (1);
 }

@@ -73,6 +73,8 @@ systick_handler:
   ldr r1, [r1]
   str r0, [r1]
   str lr, [r1, #4]
+  mrs r0, control
+  str r0, [r1, #8]
   
 /* Selcet the next process */
   ldr r0, =status
@@ -84,9 +86,6 @@ systick_handler:
   ldr r0, [r0]
   ldr lr, [r0, #4]
   ldr r2, [r0, #8]
-  mrs r1, control
-  bic r1, 0x01
-  orr r1, r2
   /* Gettign the actual value of sp*/
   ldr r3, [r0]
   ldmia r3!, {r4-r11}
@@ -98,7 +97,7 @@ systick_handler:
   bl timer_reset
   pop {lr}
   CPSIE I
-  msr control, r1
+  msr control, r2
   isb
   bx lr  
   

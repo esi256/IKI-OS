@@ -32,6 +32,7 @@ struct process {
 struct kernel_process {
     uint32_t spr;
     uint32_t ldr;
+    uint32_t ctrlr;
     void (*func) (void);
     int8_t pid;
 };

@@ -71,6 +71,7 @@ void init_kernel_proc(void (*func) (void))
         because kproc always runs first */
     kproc.spr = 0;
     kproc.ldr = 0;
+    kproc.ctrlr = 0;
     kproc.func = func;
     kproc.pid = -1;
     tsk_glob.nprocs++;
@@ -91,7 +92,7 @@ struct process *init_user_proc(void (*func)(void))
     tsk->stack_base_addr = ((uint32_t) ualloc(&tsk->stack_size));
     tsk->spr =  tsk->stack_base_addr + tsk->stack_size - sizeof(uint32_t);
     tsk->ldr = 0xFFFFFFFD;
-    tsk->ctrlr = 0x01;
+    tsk->ctrlr = 0x03;
     pcr = (uint32_t) func;
     psr = (1 << 24);
     tsk->spr = save_content(tsk->spr, psr, pcr, (uint32_t) user_end);

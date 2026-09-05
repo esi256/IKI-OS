@@ -2,10 +2,10 @@ ENTRY(Reset_Handler)
 
 MEMORY 
 {
-    FLASH (rx) : ORIGIN = 0x8000000,  LENGTH = 384K
-    SRAM (xrw) : ORIGIN = 0x20000000, LENGTH = 100K
+    FLASH (rx) : ORIGIN = 0x8000000,  LENGTH = 1M
+    SRAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
 }
-
+flash_size = 1M;
 _estack = ORIGIN(SRAM) + LENGTH(SRAM);
 total_memory = LENGTH(SRAM);
 

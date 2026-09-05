@@ -2,6 +2,7 @@
 #include <syscalls.h>
 #include <mpu.h>
 
+extern uint32_t flash_size;
 extern uint32_t kernel_base;
 extern uint32_t kernel_end;
 extern uint32_t total_memory;
@@ -48,6 +49,7 @@ uint32_t make_address_align(uint32_t addr, uint32_t alg)
     1- address should be a power of 2
     2- addreess should be a multiple of it's size 
 */
+/* Fix this shit */
 uint8_t memory_map_init(void)
 {
     uint32_t seg_addr;
@@ -67,13 +69,13 @@ uint8_t memory_map_init(void)
 
     // Align the addresses with 32 bytes
     seg_addr = make_address_align(kernel_heap_end, 0x1f);
-    mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    // mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
     seg_addr += MPU_MIN_SEG_SIZE;
     user_heap_addr = seg_addr;
     seg_addr += user_heap_size;
     user_heap_end = seg_addr;
     seg_addr = make_address_align(seg_addr, 0x1f);
-    mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    // mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
     seg_addr += MPU_MIN_SEG_SIZE;
     kernel_stack_end = seg_addr;
     return 1;
@@ -99,6 +101,22 @@ void *ualloc(uint32_t *size)
     *size = make_address_align(*size, 0x1f);
     if (user_heap_addr + *size > user_heap_end)
         return 0;
+    tmp = (uint32_t *)user_heap_addr;
+    user_heap_addr += *size;
+    return tmp;
+}
+
+uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
+{
+    uint32_t *tmp;
+
+    while (!(user_heap_addr % (*size)) && *size > (user_heap_addr-user_heap_end))
+        *size *= 2;
+    if (*size > (user_heap_addr-user_heap_end))
+        return NULL;
+    /* FIX THIS GARBAGE */
+    if (!mpu_create_segment(id, user_heap_addr, 11, 0, 1))
+        return NULL;
     tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += *size;
     return tmp;

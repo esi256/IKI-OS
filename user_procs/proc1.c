@@ -1,5 +1,6 @@
 #include <syscalls.h>
 #include <process.h>
+#include <io.h>
 
 void fun1(void)
 {
@@ -26,7 +27,11 @@ void fun2(void)
 void start(void)
 {
     struct process *ts1 = init_user_proc(fun1);
+    if (!ts1)
+        console_write("did not work\n", 14);
     struct process *ts2 = init_user_proc(fun2);
+    if (!ts2)
+        console_write("did not work\n", 14);
     add_proc_to_gloabl_list(ts1);
     add_proc_to_gloabl_list(ts2);
 }

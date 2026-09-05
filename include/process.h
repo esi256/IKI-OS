@@ -1,4 +1,5 @@
 #include <cmsis.h>
+#include <mpu.h>
 
 #define NO_PROCESS_TO_WAKUP 0xFFFFFFFF
 
@@ -7,6 +8,9 @@
 #define SLICE_TIME_TURN_STATE 0x02
 #define ALL_TASKS_ENDED_STATE 0x03
 #define NORMAL_STATE          0x04
+
+#define MAX_UNPRIVILAGED_UPROC  MPU_MAX_SEGMENTS
+
 
 enum proc_states {
     proc_blocked,

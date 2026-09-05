@@ -79,17 +79,21 @@ void init_kernel_proc(void (*func) (void))
 
 struct process *init_user_proc(void (*func)(void))
 {
+    /* add the error handling */
     struct process *tsk;
     uint32_t pcr = 0, psr = 0, tsz = sizeof(struct process);
 
-    if (!(tsk = ualloc(&tsz)))
+    if (!(tsk = kalloc(&tsz)))
         return NULL;
     tsk->func = func;
-    tsk->pid = get_pid();
+    /* change this shit to be compatible with qemu */
+    tsk->pid = get_pid() + 1;
     tsk->priority = 0;
     tsk->state = 1;
     tsk->stack_size = 2048;
-    tsk->stack_base_addr = ((uint32_t) ualloc(&tsk->stack_size));
+    tsk->stack_base_addr = ((uint32_t) uproc_stack_allocate(tsk->pid ,&tsk->stack_size));
+    if (!tsk->stack_base_addr)
+        return NULL;
     tsk->spr =  tsk->stack_base_addr + tsk->stack_size - sizeof(uint32_t);
     tsk->ldr = 0xFFFFFFFD;
     tsk->ctrlr = 0x03;

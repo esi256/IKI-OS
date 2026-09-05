@@ -81,9 +81,9 @@ systick_handler:
   ldr r0, [r0]
   bl select_next_proc
   ldr r0, =cur_proc_pointer
+  ldr r0, [r0]
 
   /* Load the Contents*/
-  ldr r0, [r0]
   ldr lr, [r0, #4]
   ldr r2, [r0, #8]
   /* Gettign the actual value of sp*/
@@ -93,9 +93,9 @@ systick_handler:
   ite ne
   msrne psp, r3
   msreq msp, r3
-  push {lr}
+  push {r2, lr}
   bl timer_reset
-  pop {lr}
+  pop {r2, lr}
   CPSIE I
   msr control, r2
   isb

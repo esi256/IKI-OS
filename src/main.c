@@ -19,7 +19,9 @@ int main(void)
     NVIC_SetPriority(USART1_IRQn, 0xFF);
     NVIC_SetPriority(SysTick_IRQn, 0x01);
     
-    memory_map_init();
+    if (!memory_map_init()) {
+        console_write("not\n", 5);
+    }
     init_global_config();
     init_kernel_proc(&kernel_main);
     timer_init();

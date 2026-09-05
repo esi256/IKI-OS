@@ -4,8 +4,10 @@
 #include <syscalls.h>
 #include <timer.h>
 #include <mem.h>
+#include <io.h>
 
 extern uint32_t save_content(uint32_t spr, uint32_t psr, uint32_t pcr, uint32_t ldr);
+// extern uint32_t get_control_reg(uint32_t)
 
 struct proc_conf tsk_glob;
 struct kernel_process kproc;
@@ -16,13 +18,14 @@ uint32_t cur_proc_pointer;
 uint32_t system_ticks;
 uint32_t earliest_wakeup_tick;
 uint32_t timeslice_turn_tick;
+uint32_t schedule_state;
 
 uint32_t compare_based_priority(struct list *p1, struct list *p2)
 {
     struct process *t = (struct process *)p1->data;
     struct process *t1 = (struct process *)p2->data;
 
-    return (t->priority >= t->priority);
+    return (t->priority >= t1->priority);
 }
 
 uint32_t compare_based_time(struct list *p1, struct list *p2)
@@ -33,7 +36,7 @@ uint32_t compare_based_time(struct list *p1, struct list *p2)
     return (t->wakeup_tick <= t1->wakeup_tick);
 }
 
-/* This function address will be in lr register 
+/* This function address will be in lr register
     of users main function and is unprivilaged */
 void user_end(void)
 {
@@ -42,6 +45,9 @@ void user_end(void)
     if (tsk_glob.is_timer_pending) {
         timer_enable_call();
     }
+    /* the space for process will not be delated */
+    tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs, tsk_glob.cur_proc);
+    /* call the pendSV*/
     while (1);
 }
 
@@ -55,7 +61,7 @@ void init_global_config(void)
     tsk_glob.available_pid = 0;
 
     system_ticks = 0;
-    earliest_wakeup_tick = 0;
+    earliest_wakeup_tick = NO_PROCESS_TO_WAKUP;
     timeslice_turn_tick = 0;
 }
 
@@ -70,22 +76,22 @@ void init_kernel_proc(void (*func) (void))
     tsk_glob.nprocs++;
 }
 
-
 struct process *init_user_proc(void (*func)(void))
 {
-    struct process *tsk = (struct process *) ualloc(sizeof(struct process));
-    uint32_t pcr = 0, psr = 0;
+    struct process *tsk;
+    uint32_t pcr = 0, psr = 0, tsz = sizeof(struct process);
 
-    if (!tsk)
+    if (!(tsk = ualloc(&tsz)))
         return NULL;
     tsk->func = func;
     tsk->pid = get_pid();
     tsk->priority = 0;
     tsk->state = 1;
     tsk->stack_size = 2048;
-    tsk->stack_base_addr = ((uint32_t) ualloc(tsk->stack_size) & 0xffffff00);
-    tsk->spr =  tsk->stack_base_addr;
+    tsk->stack_base_addr = ((uint32_t) ualloc(&tsk->stack_size));
+    tsk->spr =  tsk->stack_base_addr + tsk->stack_size - sizeof(uint32_t);
     tsk->ldr = 0xFFFFFFFD;
+    tsk->ctrlr = 0x01;
     pcr = (uint32_t) func;
     psr = (1 << 24);
     tsk->spr = save_content(tsk->spr, psr, pcr, (uint32_t) user_end);
@@ -128,11 +134,12 @@ void run_procs(void)
     cur_proc_pointer = (uint32_t) &kproc;
     tsk_glob.is_timer_pending = 0;
     /* should make this as a config and make structures to turn tick to s */
-    timeslice_turn_tick = 10;
+    timeslice_turn_tick = 1;
+    schedule_state = NO_CURRENT_PROC_STATE;
     timer_enable();
 }
 
-void suspend_cur_procs(uint32_t ticks)
+void suspend_cur_proc(uint32_t ticks)
 {
     struct list *t;
 
@@ -141,7 +148,11 @@ void suspend_cur_procs(uint32_t ticks)
     t = tsk_glob.cur_proc;
     tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs ,tsk_glob.cur_proc);
     tsk_glob.blocked_uprocs = list_add_node_func_based(tsk_glob.blocked_uprocs, t, compare_based_time);
-    /* call the pendSV and change the earliest wakeup tick*/
+    if (earliest_wakeup_tick < ((struct process *)cur_proc_pointer)->wakeup_tick || earliest_wakeup_tick == NO_PROCESS_TO_WAKUP)
+        earliest_wakeup_tick = ((struct process *)cur_proc_pointer)->wakeup_tick;
+
+    tsk_glob.cur_proc = NULL;
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 /* This function will be only called when a task is going to be waken up 
@@ -158,7 +169,8 @@ void wakeup_procs(void)
     if (tsk_glob.blocked_uprocs)
         earliest_wakeup_tick = ((struct process *)tsk_glob.blocked_uprocs->data)->wakeup_tick;
     else
-        earliest_wakeup_tick = 0;
+        earliest_wakeup_tick = NO_PROCESS_TO_WAKUP;
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 void select_next_proc(uint32_t is_proc_waken_up)
@@ -189,6 +201,7 @@ void select_next_proc(uint32_t is_proc_waken_up)
             return;
         cur_proc_pointer = (uint32_t) tsk_glob.ready_uprocs->data;
         tsk_glob.cur_proc = tsk_glob.ready_uprocs;
+        timeslice_turn_tick = system_ticks + 10;
         return;
     }
     /* not the last proc in the ready list */

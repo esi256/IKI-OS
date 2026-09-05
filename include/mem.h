@@ -1,3 +1,3 @@
-int heap_region_allocate();
-void *kalloc(uint32_t);
-void *ualloc(uint32_t);
+uint8_t memory_map_init(void);
+void *kalloc(uint32_t *size);
+void *ualloc(uint32_t *size);

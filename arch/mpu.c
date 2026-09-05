@@ -6,7 +6,7 @@ uint8_t is_mpu_enabled(void)
     return ((MPU->TYPE & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos);
 }
 
-uint8_t mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint32_t memtype, uint8_t perm)
+void mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint32_t memtype, uint8_t perm)
 {
     sizelog2--;
     MPU->CTRL &= ~MPU_CTRL_ENABLE_Msk;
@@ -31,7 +31,6 @@ uint8_t mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint3
     MPU->RBAR |= MPU_RBAR_VALID_Msk;
     MPU->RASR |= MPU_RASR_ENABLE_Msk;
     MPU->CTRL |= MPU_CTRL_ENABLE_Msk;  
-    return 1;  
 }
 
 uint8_t mpu_init(void)

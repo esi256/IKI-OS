@@ -10,6 +10,7 @@ void fun1(void)
     write(m1, 23);
     write(m2, 10);
     write(m1, 23);
+    // sleep(100);
     write(m3, 9);
     write(m4, 9);
     write(m4, 9);

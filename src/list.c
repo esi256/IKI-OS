@@ -5,7 +5,10 @@
 
 struct list *list_node_create(void *data)
 {
-    struct list *t = kalloc(sizeof(struct list));
+    struct list *t;
+    uint32_t sz = sizeof(struct list);
+
+    t = kalloc(&sz);
     t->data = data;
     t->next = NULL;
     t->prev = NULL;
@@ -95,4 +98,5 @@ inline struct list *list_rem_node(struct list *head ,struct list *node)
         t = node->next;
     node->next = NULL;
     node->prev = NULL;
+    return t;
 }

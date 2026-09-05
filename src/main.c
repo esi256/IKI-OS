@@ -13,19 +13,17 @@ void kernel_main(void)
 
 int main(void)
 {
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
-    GPIOB->MODER &= ~(0xF << (2 * 6));
-    GPIOB->MODER |= (0xA << (2 * 6));
-    GPIOB->AFR[0] |= 0x77 << (4*6);
-
+    SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
     NVIC_SetPriority(SVCall_IRQn, 0xFF);
-    NVIC_SetPriority(SysTick_IRQn, 0x02);
-    heap_region_allocate();
+    NVIC_SetPriority(USART1_IRQn, 0xFF);
+    NVIC_SetPriority(SysTick_IRQn, 0x01);
+    
+    memory_map_init();
     init_global_config();
     init_kernel_proc(&kernel_main);
-    timer_initialize();
-    timer_set(10);
+    timer_init();
+    timer_set(300);
     syscalls_init();
     start();  
     run_procs();

@@ -31,3 +31,9 @@ enable_interrupts:
     .type disable_interrupts, %function
 disable_interrupts:
     CPSID I
+
+    .global get_contorl_reg
+    .type get_contorl_reg, %function
+get_contorl_reg:
+    mrs r0, control
+    bx lr

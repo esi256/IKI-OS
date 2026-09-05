@@ -3,6 +3,12 @@
 
 void usart_configure(USART_TypeDef *USARTx)
 {
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+    GPIOB->MODER &= ~(0xF << (2 * 6));
+    GPIOB->MODER |= (0xA << (2 * 6));
+    GPIOB->AFR[0] |= 0x77 << (4*6);
+
+    
     USARTx->CR1 &= ~USART_CR1_UE;
     USARTx->CR2 &= ~USART_CR2_STOP;
     USARTx->CR1 &= ~USART_CR1_PCE;

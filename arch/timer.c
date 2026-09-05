@@ -1,6 +1,6 @@
 #include "cmsis.h"
 
-uint8_t timer_initialize(void)
+uint8_t timer_init(void)
 {
     SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
     SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;

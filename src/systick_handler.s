@@ -1,22 +1,32 @@
-#include <cmsis.h>
+  .cpu cortex-m4
+  .syntax unified
+  .thumb
 
+  .set SCB_BASE, 0xE000ED00
+  .set SCB_ICSR_PENDSVSET_Msk, 0x10000000
+
+  .section .bss
+  .align 4
+status:
+  .word 0
+
+  .section .text
   .extern cur_proc_pointer
   .extern system_ticks
-  .extern earliest_deadline
+  .extern earliest_wakeup_tick
   .extern wakeup_procs
-  .extern 
   .extern timeslice_turn_tick
   .extern select_next_proc
   .extern timer_reset  
-  
+
   .global systick_handler
   .type systick_handler, %function
-systick_handler:
+PendSV_Handler:
   ldr r1, =system_ticks
   ldr r2, [r1]
   add r2, #1
   str r2, [r1]
-  ldr r1, =earliest_deadline
+  ldr r1, =earliest_wakeup_tick
   ldr r1, [r1]
   cmp r2, r1
   blo second_cond
@@ -24,6 +34,8 @@ systick_handler:
   bl wakeup_procs
   pop {r2, lr}
   mov r0, #1
+  ldr r3, =status
+  str r0, [r3]
   b call_pendSV
 second_cond:
   ldr r1, =timeslice_turn_tick
@@ -31,48 +43,62 @@ second_cond:
   cmp r2, r1
   blo exit_systick_handler
   mov r0, #0
+  ldr r3, =status
+  str r0, [r3]  
 call_pendSV:
   ldr r1, =SCB_BASE
   add r1, #4
   ldr r3, [r1]
-  ldr r4, =SCB_ICSR_PENDSVSET_Msk
-  orr r3, r4
+  ldr r0, =SCB_ICSR_PENDSVSET_Msk
+  orr r3, r0
   str r3, [r1]
+
 exit_systick_handler:
   bx lr
 
   .global PendSV_Handler
   .type PendSV_Handler, %function
-PendSV_Handler:
+systick_handler:
   CPSID I
   /* Save The Contents */
-  /* if the procs can be run in priviliaged, this part should be written again*/
-  mrs r0, psp
+  tst lr, #4
+  ite ne
+  mrsne r0, psp
+  mrseq r0, msp
   stmdb r0!, {r4-r11}
-  msr psp, r0
+  ite ne
+  msrne psp, r0
+  msreq msp, r0
   ldr r1, =cur_proc_pointer
   ldr r1, [r1]
   str r0, [r1]
   str lr, [r1, #4]
   
 /* Selcet the next process */
-  mrs r0, msp
-  str r0, [r0]
+  ldr r0, =status
+  ldr r0, [r0]
   bl select_next_proc
   ldr r0, =cur_proc_pointer
-  ldr r0, [r0]
-  ldr lr, [r0, #4]
-  mov r1, lr
-  /* Gettign the actual value of sp*/
-  ldr r3, [r0]
 
   /* Load the Contents*/
+  ldr r0, [r0]
+  ldr lr, [r0, #4]
+  ldr r2, [r0, #8]
+  mrs r1, control
+  bic r1, 0x01
+  orr r1, r2
+  /* Gettign the actual value of sp*/
+  ldr r3, [r0]
   ldmia r3!, {r4-r11}
-  cmp lr, #4
+  tst lr, #4
   ite ne
   msrne psp, r3
   msreq msp, r3
+  push {lr}
   bl timer_reset
-  mov lr, r1
+  pop {lr}
   CPSIE I
-  bx lr
+  msr control, r1
+  isb
+  bx lr  
+  

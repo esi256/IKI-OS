@@ -1,15 +1,24 @@
 #include <cmsis.h>
 
+#define NO_PROCESS_TO_WAKUP 0xFFFFFFFF
+
+#define NO_CURRENT_PROC_STATE 0x00
+#define APROC_WAKEDUP_STATE   0x01
+#define SLICE_TIME_TURN_STATE 0x02
+#define ALL_TASKS_ENDED_STATE 0x03
+#define NORMAL_STATE          0x04
+
 enum proc_states {
     proc_blocked,
     proc_ready
 };
 
 /* The order of struct should not be changed, 
-    It's importent in context switch in assembly files*/
+    It's importent in context switch in assembly files */
 struct process {
     uint32_t spr;
     uint32_t ldr;
+    uint32_t ctrlr;
     void (*func) (void);
     int8_t pid;
     int8_t priority;
@@ -44,4 +53,6 @@ void init_kernel_proc(void (*) (void));
 struct process *init_user_proc(void (*func)(void));
 uint32_t get_stack_address(void);
 uint8_t add_proc_to_gloabl_list(struct process *proc);
+void suspend_cur_proc(uint32_t ticks);
+
 void run_procs(void);

@@ -48,57 +48,58 @@ uint32_t make_address_align(uint32_t addr, uint32_t alg)
     1- address should be a power of 2
     2- addreess should be a multiple of it's size 
 */
-int heap_region_allocate()
+uint8_t memory_map_init(void)
 {
     uint32_t seg_addr;
     uint32_t lefsz;
 
     if (mpu_init() < 0)
-        return -1;
+        return 0;
 
     lefsz = ((uint32_t)&total_memory) - (((uint32_t)&kernel_end) - SRAM_BASE);
     kernel_heap_size = (lefsz - 2*32) / 3;
-    user_heap_size = kernel_heap_size;
-    stack_size = user_heap_size;
+    stack_size = user_heap_size = kernel_heap_size;
     if (kernel_stack_min > lefsz)
-        return -1;
+        return 0;
     
     kernel_heap_addr = (uint32_t)&kernel_end;
     kernel_heap_end = kernel_heap_addr + kernel_heap_size;
 
     // Align the addresses with 32 bytes
     seg_addr = make_address_align(kernel_heap_end, 0x1f);
-    mpu_create_segment(1, seg_addr, 5, 0, 0);
-    seg_addr += 32;
+    mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    seg_addr += MPU_MIN_SEG_SIZE;
     user_heap_addr = seg_addr;
     seg_addr += user_heap_size;
     user_heap_end = seg_addr;
     seg_addr = make_address_align(seg_addr, 0x1f);
-    mpu_create_segment(1, seg_addr, 5, 0, 0);
-    seg_addr += 32;
+    mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    seg_addr += MPU_MIN_SEG_SIZE;
     kernel_stack_end = seg_addr;
-    return 0;
+    return 1;
 }
 
-void *kalloc(uint32_t size)
+void *kalloc(uint32_t *size)
 {
     uint32_t *tmp;
 
-    if (kernel_heap_addr+size >= kernel_heap_end)
+    *size = make_address_align(*size, 0x1f);
+    if (kernel_heap_addr + *size >= kernel_heap_end)
         return 0;
 
     tmp = (uint32_t *)kernel_heap_addr;
-    kernel_heap_addr += size;
+    kernel_heap_addr += *size;
     return tmp;
 }
 
-void *ualloc(uint32_t size)
+void *ualloc(uint32_t *size)
 {
     uint32_t *tmp;
 
-    if (user_heap_addr + size > user_heap_end)
+    *size = make_address_align(*size, 0x1f);
+    if (user_heap_addr + *size > user_heap_end)
         return 0;
     tmp = (uint32_t *)user_heap_addr;
-    user_heap_addr += size;
+    user_heap_addr += *size;
     return tmp;
 }

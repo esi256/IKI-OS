@@ -21,7 +21,7 @@ status:
 
   .global systick_handler
   .type systick_handler, %function
-PendSV_Handler:
+systick_handler:
   ldr r1, =system_ticks
   ldr r2, [r1]
   add r2, #1
@@ -58,7 +58,7 @@ exit_systick_handler:
 
   .global PendSV_Handler
   .type PendSV_Handler, %function
-systick_handler:
+PendSV_Handler:
   CPSID I
   /* Save The Contents */
   tst lr, #4

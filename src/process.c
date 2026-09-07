@@ -40,14 +40,7 @@ uint32_t compare_based_time(struct list *p1, struct list *p2)
     of users main function and is unprivilaged */
 void user_end(void)
 {
-    ((struct process *)cur_proc_pointer)->state = 0;
-    tsk_glob.nprocs--;
-    if (tsk_glob.is_timer_pending) {
-        timer_enable_call();
-    }
-    /* the space for process will not be delated */
-    tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs, tsk_glob.cur_proc);
-    /* call the pendSV*/
+    proc_remove();
     while (1);
 }
 
@@ -111,6 +104,21 @@ uint8_t add_proc_to_gloabl_list(struct process *proc)
     return 1;
 }
 
+void proc_detach(void)
+{
+    ((struct process *)cur_proc_pointer)->state = 0;
+    tsk_glob.nprocs--;
+    if (tsk_glob.is_timer_pending) {
+        timer_enable_call();
+    }
+    /* the space for process will not be delated */
+    tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs, tsk_glob.cur_proc);
+    /* make a change for state that current proc should change */
+    tsk_glob.cur_proc = NULL;
+    /* write call the pendSV more cleaner*/
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+}
+
 uint8_t get_pid(void)
 {
     return tsk_glob.available_pid++;
@@ -148,6 +156,7 @@ void suspend_cur_proc(uint32_t ticks)
 {
     struct list *t;
 
+    __disable_irq();
     ((struct process *)cur_proc_pointer)->state = proc_blocked;
     ((struct process *)cur_proc_pointer)->wakeup_tick = system_ticks + ticks;
     t = tsk_glob.cur_proc;
@@ -155,8 +164,10 @@ void suspend_cur_proc(uint32_t ticks)
     tsk_glob.blocked_uprocs = list_add_node_func_based(tsk_glob.blocked_uprocs, t, compare_based_time);
     if (earliest_wakeup_tick < ((struct process *)cur_proc_pointer)->wakeup_tick || earliest_wakeup_tick == NO_PROCESS_TO_WAKUP)
         earliest_wakeup_tick = ((struct process *)cur_proc_pointer)->wakeup_tick;
+    __enable_irq();
 
     tsk_glob.cur_proc = NULL;
+    /* write call the pendSV more cleaner*/
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
@@ -200,15 +211,26 @@ void select_next_proc(uint32_t is_proc_waken_up)
         tsk_glob.cur_proc = NULL;
         return;
     }
-    /* change the blow code to deal with nreadyprocs*/
-    if (!tsk_glob.cur_proc || !tsk_glob.cur_proc->next) {
+    /* change the blow code to deal with nreadyprocs and not tsk_glob.cur_proc and cahnge wakeup and suspend*/
+    if (!tsk_glob.cur_proc) {
+        if (!tsk_glob.ready_uprocs) {
+            cur_proc_pointer = (uint32_t) &kproc;
+            tsk_glob.cur_proc = NULL;
+            return;
+        }
+        cur_proc_pointer = (uint32_t) tsk_glob.ready_uprocs->data;
+        tsk_glob.cur_proc = tsk_glob.ready_uprocs;
+        timeslice_turn_tick = system_ticks + 10;
+        return;
+    }
+    if (!tsk_glob.cur_proc->next) {
         if (tsk_glob.cur_proc == tsk_glob.ready_uprocs)
             return;
         cur_proc_pointer = (uint32_t) tsk_glob.ready_uprocs->data;
         tsk_glob.cur_proc = tsk_glob.ready_uprocs;
         timeslice_turn_tick = system_ticks + 10;
         return;
-    }
+    }        
     /* not the last proc in the ready list */
     pt = ((struct process *)tsk_glob.cur_proc->data);
     pt1 = ((struct process *)tsk_glob.cur_proc->next->data);

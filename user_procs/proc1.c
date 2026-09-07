@@ -5,22 +5,27 @@
 void fun1(void)
 {
     char m1[] = "hello world form fun1\n";
-    char m2[] = "finished\n";
-    char m3[] = "hello 2\n";
-    char m4[] = "hello 3\n";
-    write(m1, 23);
-    write(m2, 10);
-    write(m1, 23);
-    // sleep(100);
-    write(m3, 9);
-    write(m4, 9);
-    write(m4, 9);
+    // char m2[] = "finished\n";
+    // char m3[] = "hello 2\n";
+    // char m4[] = "hello 3\n";
+    // write(m1, 23);
+    // write(m2, 10);
+    // write(m1, 23);
+    // sleep(10);
+    // write(m3, 9);
+    // write(m4, 9);
+    // write(m4, 9);
+    while (1) {
+        write(m1, 23);
+    }
 }
 
 void fun2(void)
 {
     char m1[] = "hello world from fun2\n";
-    write(m1, 23);
+    while (2) {
+        write(m1, 23);
+    }
 }
 
 /* This function is part of the kernel */

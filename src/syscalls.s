@@ -44,6 +44,16 @@ proc_add:
     svc 0x00
     pop {lr}
     bx lr
+    
+    .global proc_remove
+    .type proc_remove, %function
+proc_remove:
+    svc 0x00
+    push {lr}
+    blx proc_detach
+    svc 0x00
+    pop {lr}
+    bx lr
 
     .global timer_enable_call
     .type timer_enable_call, %function

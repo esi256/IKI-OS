@@ -14,12 +14,13 @@ uint8_t mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint3
         return 0;
     sizelog2--;
     MPU->CTRL &= ~MPU_CTRL_ENABLE_Msk;
-    MPU->RNR = 0x0;
-    MPU->RNR = nseg & 0xf;
+    MPU->RNR = 0x00;
+    MPU->RNR = nseg & 0x07;
+    MPU->RASR = 0x00;
     MPU->RASR |= (sizelog2 & 0x1f) << MPU_RASR_SIZE_Pos;
     MPU->RBAR |= (addr >> sizelog2) << sizelog2;
-    MPU->RBAR |= (nseg & 0xf) << MPU_RBAR_REGION_Pos;
-    // MPU->RASR = 0x0;
+    MPU->RBAR |= (nseg & 0x07) << MPU_RBAR_REGION_Pos;
+    MPU->RBAR &= ~(MPU_RBAR_VALID_Msk);
     MPU->RASR &= ~(MPU_RASR_XN_Msk);
     if (perm)
         MPU->RASR |= (0b011 << MPU_RASR_AP_Pos); // Full Access

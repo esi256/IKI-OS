@@ -99,7 +99,7 @@ void *ualloc(uint32_t *size)
     uint32_t *tmp;
 
     *size = make_address_align(*size, 0x1f);
-    if (user_heap_addr + *size > user_heap_end)
+    if (user_heap_addr + *size >= user_heap_end)
         return 0;
     tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += *size;
@@ -109,11 +109,15 @@ void *ualloc(uint32_t *size)
 uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
 {
     uint32_t *tmp;
+    uint32_t t;
 
-    while (!(user_heap_addr % (*size)) && *size > (user_heap_addr-user_heap_end))
-        *size *= 2;
-    if (*size > (user_heap_addr-user_heap_end))
-        return NULL;
+    *size = make_address_align(*size, 0x02);
+    if ((user_heap_addr % (*size)) && (*size) < (user_heap_end-user_heap_addr)) {
+        t = make_address_align(user_heap_addr, *size);
+        if (t >= user_heap_end)
+            return NULL;
+        user_heap_addr = t;
+    }
     /* FIX THIS GARBAGE */
     if (!mpu_create_segment(id, user_heap_addr, 11, 0, 1))
         return NULL;

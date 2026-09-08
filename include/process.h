@@ -33,7 +33,7 @@ struct process {
     uint32_t stack_size;
 };
 
-struct kernel_process {
+struct proc_kernel {
     uint32_t spr;
     uint32_t ldr;
     uint32_t ctrlr;
@@ -41,7 +41,7 @@ struct kernel_process {
     int8_t pid;
 };
 
-struct proc_conf {
+struct proc_global_config {
     struct list *ready_uprocs;
     struct list *blocked_uprocs;
     struct list *cur_proc;
@@ -50,12 +50,17 @@ struct proc_conf {
     uint8_t available_pid;
 };
 
-extern struct proc_conf tsk_glob;
+struct proc_setting {
+    void (*func) (void);
+    int8_t priority; 
+};
+
+extern struct proc_global_config tsk_glob;
 
 uint8_t get_pid(void);
 void init_global_config(void);
 void init_kernel_proc(void (*) (void));
-struct process *init_user_proc(void (*func)(void));
+struct process *init_user_proc(struct proc_setting *st);
 uint32_t get_stack_address(void);
 uint8_t add_proc_to_gloabl_list(struct process *proc);
 void suspend_cur_proc(uint32_t ticks);

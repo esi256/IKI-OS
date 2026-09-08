@@ -9,8 +9,8 @@
 extern uint32_t save_content(uint32_t spr, uint32_t psr, uint32_t pcr, uint32_t ldr);
 // extern uint32_t get_control_reg(uint32_t)
 
-struct proc_conf tsk_glob;
-struct kernel_process kproc;
+struct proc_global_config tsk_glob;
+struct proc_kernel kproc;
 /* these varibales will be only 
     read during context switch 
     and written during this file */
@@ -70,7 +70,7 @@ void init_kernel_proc(void (*func) (void))
     tsk_glob.nprocs++;
 }
 
-struct process *init_user_proc(void (*func)(void))
+struct process *init_user_proc(struct proc_setting *st)
 {
     /* add the error handling */
     struct process *tsk;
@@ -78,10 +78,10 @@ struct process *init_user_proc(void (*func)(void))
 
     if (!(tsk = kalloc(&tsz)))
         return NULL;
-    tsk->func = func;
-    /* change this shit to be compatible with qemu */
+    tsk->func = st->func;
+    /* change this shit to be compatible with MPU */
     tsk->pid = get_pid() + 1;
-    tsk->priority = 0;
+    tsk->priority = st->priority;
     tsk->state = 1;
     tsk->stack_size = 2048;
     tsk->stack_base_addr = ((uint32_t) uproc_stack_allocate(tsk->pid ,&tsk->stack_size));
@@ -90,7 +90,7 @@ struct process *init_user_proc(void (*func)(void))
     tsk->spr =  tsk->stack_base_addr + tsk->stack_size - sizeof(uint32_t);
     tsk->ldr = 0xFFFFFFFD;
     tsk->ctrlr = 0x03;
-    pcr = (uint32_t) func;
+    pcr = (uint32_t) st->func;
     psr = (1 << 24);
     tsk->spr = save_content(tsk->spr, psr, pcr, (uint32_t) user_end);
     return tsk;

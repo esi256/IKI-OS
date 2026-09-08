@@ -10,7 +10,7 @@ extern uint32_t save_content(uint32_t spr, uint32_t psr, uint32_t pcr, uint32_t 
 // extern uint32_t get_control_reg(uint32_t)
 
 struct proc_global_config tsk_glob;
-struct proc_kernel kproc;
+struct idle_proc kproc;
 /* these varibales will be only 
     read during context switch 
     and written during this file */
@@ -58,7 +58,7 @@ void init_global_config(void)
     timeslice_turn_tick = 0;
 }
 
-void init_kernel_proc(void (*func) (void))
+void init_idle_proc(void (*func) (void))
 {
     /* There is no need to initialize the registers, 
         because kproc always runs first */

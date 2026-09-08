@@ -33,7 +33,7 @@ struct process {
     uint32_t stack_size;
 };
 
-struct proc_kernel {
+struct idle_proc {
     uint32_t spr;
     uint32_t ldr;
     uint32_t ctrlr;
@@ -59,7 +59,7 @@ extern struct proc_global_config tsk_glob;
 
 uint8_t get_pid(void);
 void init_global_config(void);
-void init_kernel_proc(void (*) (void));
+void init_idle_proc(void (*) (void));
 struct process *init_user_proc(struct proc_setting *st);
 uint32_t get_stack_address(void);
 uint8_t add_proc_to_gloabl_list(struct process *proc);

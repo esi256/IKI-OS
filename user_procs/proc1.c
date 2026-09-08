@@ -16,6 +16,7 @@ void fun2(void)
     char m1[] = "hello world from fun2\n";
     while (2) {
         write(m1, 23);
+        sleep(5);
     }
 }
 

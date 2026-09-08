@@ -23,7 +23,7 @@ int main(void)
         console_write("not\n", 5);
     }
     init_global_config();
-    init_kernel_proc(&kernel_main);
+    init_idle_proc(&kernel_main);
     timer_init();
     timer_set(100);
     syscalls_init();

@@ -1,6 +1,7 @@
 #include <cmsis.h>
 #include <syscalls.h>
 #include <mpu.h>
+#include <kernel_error.h>
 
 extern uint32_t flash_size;
 extern uint32_t kernel_base;
@@ -50,19 +51,21 @@ uint32_t make_address_align(uint32_t addr, uint32_t alg)
     2- addreess should be a multiple of it's size 
 */
 /* Fix this shit */
-uint8_t memory_map_init(void)
+enum kernel_error memory_map_init(void)
 {
     uint32_t seg_addr;
     uint32_t lefsz;
+    enum kernel_error err;
 
-    if (mpu_init() < 0)
-        return 0;
+    err = mpu_init();
+    if (err != ERR_OK)
+        return err;
 
     lefsz = ((uint32_t)&total_memory) - (((uint32_t)&kernel_end) - SRAM_BASE);
     kernel_heap_size = (lefsz - 2*32) / 3;
     stack_size = user_heap_size = kernel_heap_size;
     if (kernel_stack_min > lefsz)
-        return 0;
+        return ERR_MEM_NO_SPACE_FOR_KERNEL;
     
     kernel_heap_addr = (uint32_t)&kernel_end;
     kernel_heap_end = kernel_heap_addr + kernel_heap_size;
@@ -78,7 +81,7 @@ uint8_t memory_map_init(void)
     // mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
     seg_addr += MPU_MIN_SEG_SIZE;
     kernel_stack_end = seg_addr;
-    return 1;
+    return ERR_OK;
 }
 
 void *kalloc(uint32_t *size)
@@ -87,7 +90,7 @@ void *kalloc(uint32_t *size)
 
     *size = make_address_align(*size, 0x1f);
     if (kernel_heap_addr + *size >= kernel_heap_end)
-        return 0;
+        return NULL;
 
     tmp = (uint32_t *)kernel_heap_addr;
     kernel_heap_addr += *size;
@@ -100,7 +103,7 @@ void *ualloc(uint32_t *size)
 
     *size = make_address_align(*size, 0x1f);
     if (user_heap_addr + *size >= user_heap_end)
-        return 0;
+        return NULL;
     tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += *size;
     return tmp;
@@ -119,7 +122,7 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
         user_heap_addr = t;
     }
     /* FIX THIS GARBAGE */
-    if (!mpu_create_segment(id, user_heap_addr, 11, 0, 1))
+    if (mpu_create_segment(id, user_heap_addr, 11, 0, 1) != ERR_OK)
         return NULL;
     tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += *size;

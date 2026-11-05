@@ -5,6 +5,7 @@
 #include <uprocs.h>
 #include <timer.h>
 #include <io.h>
+#include <kernel_error.h>
 
 void kernel_main(void)
 {
@@ -13,19 +14,21 @@ void kernel_main(void)
 
 int main(void)
 {
+    enum kernel_error err;
     SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
     NVIC_SetPriority(PendSV_IRQn, 0xFF);
     NVIC_SetPriority(SVCall_IRQn, 0xFF);
     NVIC_SetPriority(USART1_IRQn, 0xFF);
     NVIC_SetPriority(SysTick_IRQn, 0x01);
     
-    if (!memory_map_init()) {
-        console_write("not\n", 5);
-    }
+    if ((err = memory_map_init()) != ERR_OK)
+        error_handler(err);
     init_global_config();
     init_idle_proc(&kernel_main);
-    timer_init();
-    timer_set(100);
+    if ((err = timer_init()) != ERR_OK)
+        error_handler(err);
+    if ((err = timer_set(100)) != ERR_OK)
+        error_handler(err);
     syscalls_init();
     start();  
     run_procs();

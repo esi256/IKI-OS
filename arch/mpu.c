@@ -1,6 +1,7 @@
 #include <syscalls.h>
 #include <mpu.h>
 #include <mem.h>
+#include <kernel_error.h>
 
 uint8_t is_mpu_enabled(void)
 {
@@ -8,10 +9,10 @@ uint8_t is_mpu_enabled(void)
 }
 
 /* fix this bullshit*/
-uint8_t mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint32_t memtype, uint8_t perm)
+enum kernel_error mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint32_t memtype, uint8_t perm)
 {
     if (nseg > MPU_MAX_SEGMENTS)
-        return 0;
+        return ERR_MPU_NO_FREE_REGION;
     sizelog2--;
     MPU->CTRL &= ~MPU_CTRL_ENABLE_Msk;
     MPU->RNR = 0x00;
@@ -36,7 +37,7 @@ uint8_t mpu_create_segment(uint32_t nseg,uint32_t addr, uint32_t sizelog2, uint3
     MPU->RBAR |= MPU_RBAR_VALID_Msk;
     MPU->RASR |= MPU_RASR_ENABLE_Msk;
     MPU->CTRL |= MPU_CTRL_ENABLE_Msk;  
-    return 1;
+    return ERR_OK;
 }
 
 uint8_t mpu_init(void)

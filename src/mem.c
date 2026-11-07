@@ -121,8 +121,16 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
             return NULL;
         user_heap_addr = t;
     }
-    /* FIX THIS GARBAGE */
-    if (mpu_create_segment(id, user_heap_addr, 11, 0, 1) != ERR_OK)
+    
+    struct mpu_op up_stack_ops = {
+        .addr = user_heap_addr,
+        .nseg = id,
+        .size_in_log2 = 11,     // fix this, it should not be 11 but size
+        .mem_type = MPU_MEM_NORMAL_WB_WRA,
+        .exe_permission = 0,
+        .ap_permission = MPU_AP_FULL_ACCESS
+    };
+    if (mpu_create_segment(&up_stack_ops) != ERR_OK)
         return NULL;
     tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += *size;

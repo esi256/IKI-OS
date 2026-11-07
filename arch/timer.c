@@ -1,3 +1,6 @@
+#ifndef TIMER_H
+#define TIMER_H
+
 #include <cmsis.h>
 #include <kernel_error.h>
 
@@ -41,3 +44,5 @@ void timer_disable(void)
 {
     SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk);
 }
+
+#endif

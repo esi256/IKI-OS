@@ -1,3 +1,6 @@
+#ifndef PROCESS_H
+#define PROCESS_H
+
 #include <cmsis.h>
 #include <mpu.h>
 
@@ -66,3 +69,5 @@ uint8_t add_proc_to_gloabl_list(struct process *proc);
 void suspend_cur_proc(uint32_t ticks);
 
 void run_procs(void);
+
+#endif

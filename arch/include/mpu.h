@@ -1,3 +1,6 @@
+#ifndef MPU_H
+#define MPU_H
+
 #include <cmsis.h>
 
 #define MPU_MIN_SEG_SIZE 32
@@ -52,3 +55,5 @@ struct mpu_op {
 
 enum kernel_error mpu_init(void);
 enum kernel_error mpu_create_segment(struct mpu_op *ops);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef SYSCALLS_H
+#define SYSCALLS_H
+
 #include <cmsis.h>
 
 extern uint32_t systemcall_addrs[5];
@@ -10,3 +13,5 @@ extern void timer_disable_call(void);
 extern void timer_enable_call(void);
 extern void sleep(uint32_t ticks);
 extern void proc_remove(void);
+
+#endif

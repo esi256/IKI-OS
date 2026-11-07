@@ -1,3 +1,6 @@
+#ifndef KERNEL_ERROR_H
+#define KERNEL_ERROR_H
+
 enum kernel_error {
     ERR_OK = 0,
     ERR_INVALID_ARG,
@@ -37,3 +40,5 @@ enum kernel_error {
 };
 
 enum kernel_error error_handler(enum kernel_error type);
+
+#endif

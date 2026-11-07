@@ -1,3 +1,6 @@
+#ifndef BUFFER_H
+#define BUFFER_H
+
 #include <cmsis.h>
 
 struct usart_buffer {
@@ -7,3 +10,5 @@ struct usart_buffer {
 };
 
 extern struct usart_buffer usart1_buffer;
+
+#endif

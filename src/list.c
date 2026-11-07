@@ -82,7 +82,8 @@ list_add_node_func_based(struct list *head, struct list *node, uint32_t (*comp)(
 inline struct list *list_rem_head(struct list *head)
 {
     struct list *t = head->next;
-
+    if (!t)
+        return NULL;
     head->next->prev = NULL;
     head->next = NULL;
     return t;    

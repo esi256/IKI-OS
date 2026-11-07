@@ -19,27 +19,6 @@ uint32_t kernel_stack_end;
 uint32_t user_heap_end;
 uint32_t kernel_stack_min = 0x8000;
 
-int get_prev_pow2size(int32_t arg)
-{
-    int32_t tmp[4];
-    uint8_t idx = 0;
-    uint32_t min = -1;
-
-    for (uint32_t i = 8192; i <= 65536; i *= 2) {
-        tmp[idx++] = arg - i;
-    }
-    for (uint32_t i = 0; i < 4; i++) {
-            if (tmp[i] > 0 && tmp[i] < min) {
-                min = tmp[i];
-                idx = i;
-            }
-    }
-    if (min == -1)
-        return -1;
-    else
-        return (1 << idx+13);
-}
-
 uint32_t make_address_align(uint32_t addr, uint32_t alg)
 {
     uint32_t t;

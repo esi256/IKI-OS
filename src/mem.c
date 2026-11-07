@@ -2,6 +2,7 @@
 #include <syscalls.h>
 #include <mpu.h>
 #include <kernel_error.h>
+#include <bit_ops.h>
 
 extern uint32_t flash_size;
 extern uint32_t kernel_base;
@@ -112,16 +113,18 @@ void *ualloc(uint32_t *size)
 uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
 {
     uint32_t *tmp;
-    uint32_t t;
+    uint32_t t, t1 = user_heap_addr, sizet = *size;
 
-    *size = make_address_align(*size, 0x02);
-    if ((user_heap_addr % (*size)) && (*size) < (user_heap_end-user_heap_addr)) {
-        t = make_address_align(user_heap_addr, *size);
-        if (t >= user_heap_end)
+    sizet = round_up_pow2(*size);
+    if (!sizet)
+        return NULL;
+    if ((user_heap_addr % (sizet))) {
+        t = make_address_align(user_heap_addr, sizet);
+        if (t >= user_heap_end || (sizet) > (user_heap_end-user_heap_addr))
             return NULL;
         user_heap_addr = t;
     }
-    
+
     struct mpu_op up_stack_ops = {
         .addr = user_heap_addr,
         .nseg = id,
@@ -130,9 +133,12 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
         .exe_permission = 0,
         .ap_permission = MPU_AP_FULL_ACCESS
     };
-    if (mpu_create_segment(&up_stack_ops) != ERR_OK)
+    if (mpu_create_segment(&up_stack_ops) != ERR_OK) {
+        user_heap_addr = t1;
         return NULL;
+    }
+    user_heap_addr += sizet;
+    *size = sizet;
     tmp = (uint32_t *)user_heap_addr;
-    user_heap_addr += *size;
     return tmp;
 }

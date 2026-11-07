@@ -9,6 +9,8 @@ struct list *list_node_create(void *data)
     uint32_t sz = sizeof(struct list);
 
     t = kalloc(&sz);
+    if (!t)
+        return NULL;
     t->data = data;
     t->next = NULL;
     t->prev = NULL;

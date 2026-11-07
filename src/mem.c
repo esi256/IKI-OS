@@ -71,15 +71,27 @@ enum kernel_error memory_map_init(void)
     kernel_heap_addr = (uint32_t)&kernel_end;
     kernel_heap_end = kernel_heap_addr + kernel_heap_size;
 
-    // Align the addresses with 32 bytes
-    seg_addr = make_address_align(kernel_heap_end, 0x1f);
-    // mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    seg_addr = make_address_align(kernel_heap_end, 32);
+    struct mpu_op seg_ops = {
+        .addr = seg_addr,
+        .nseg = 1,
+        .size_in_log2 = MPU_MIN_SEG_SIZE_LOG,
+        .mem_type = MPU_MEM_STRONGLY_ORDERED,
+        .exe_permission = 0,
+        .ap_permission = MPU_AP_NO_ACCESS
+    };
+    if ((err = mpu_create_segment(&seg_ops)) != ERR_OK)
+        return err;
     seg_addr += MPU_MIN_SEG_SIZE;
     user_heap_addr = seg_addr;
     seg_addr += user_heap_size;
     user_heap_end = seg_addr;
-    seg_addr = make_address_align(seg_addr, 0x1f);
-    // mpu_create_segment(1, seg_addr, MPU_MIN_SEG_SIZE_LOG, 0, 0);
+    seg_addr = make_address_align(seg_addr, 32);
+    
+    seg_ops.nseg = 2;
+    seg_ops.addr = seg_addr;
+    if ((err = mpu_create_segment(&seg_ops)) != ERR_OK)
+        return err;
     seg_addr += MPU_MIN_SEG_SIZE;
     kernel_stack_end = seg_addr;
     return ERR_OK;
@@ -89,7 +101,7 @@ void *kalloc(uint32_t *size)
 {
     uint32_t *tmp;
 
-    *size = make_address_align(*size, 0x1f);
+    *size = make_address_align(*size, 32);
     if (kernel_heap_addr + *size >= kernel_heap_end)
         return NULL;
 
@@ -102,7 +114,7 @@ void *ualloc(uint32_t *size)
 {
     uint32_t *tmp;
 
-    *size = make_address_align(*size, 0x1f);
+    *size = make_address_align(*size, 32);
     if (user_heap_addr + *size >= user_heap_end)
         return NULL;
     tmp = (uint32_t *)user_heap_addr;

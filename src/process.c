@@ -79,8 +79,8 @@ struct process *init_user_proc(struct proc_setting *st)
     if (!(tsk = kalloc(&tsz)))
         return NULL;
     tsk->func = st->func;
-    /* change this shit to be compatible with MPU */
-    tsk->pid = get_pid() + 1;
+    /* change this shit to be compatible with MPU and memory managment*/
+    tsk->pid = get_pid() + 2;
     tsk->priority = st->priority;
     tsk->state = 1;
     tsk->stack_size = 2048;

@@ -128,8 +128,8 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
         user_heap_addr = t1;
         return NULL;
     }
+    tmp = (uint32_t *)user_heap_addr;
     user_heap_addr += sizet;
     *size = sizet;
-    tmp = (uint32_t *)user_heap_addr;
     return tmp;
 }

@@ -80,7 +80,7 @@ struct process *init_user_proc(struct proc_setting *st)
         return NULL;
     tsk->func = st->func;
     /* change this shit to be compatible with MPU and memory managment*/
-    tsk->pid = get_pid() + 2;
+    tsk->pid = get_pid() + 3;
     tsk->priority = st->priority;
     tsk->state = 1;
     tsk->stack_size = 2048;

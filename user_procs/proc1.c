@@ -38,6 +38,6 @@ void start(void)
     error_handler(ERR_MEM_NO_SPACE_FOR_KERNEL);
 
     // error handling necessary
-    add_proc_to_gloabl_list(ts1);
-    add_proc_to_gloabl_list(ts2);
+    add_proc_to_global_list(ts1);
+    add_proc_to_global_list(ts2);
 }

@@ -96,7 +96,7 @@ struct process *init_user_proc(struct proc_setting *st)
     return tsk;
 }
 
-uint8_t add_proc_to_gloabl_list(struct process *proc)
+uint8_t add_proc_to_global_list(struct process *proc)
 {
     struct list *nn = list_node_create((void *)proc);
     tsk_glob.ready_uprocs = list_add_node_func_based(tsk_glob.ready_uprocs, nn, compare_based_priority);

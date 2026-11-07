@@ -40,7 +40,7 @@ proc_init:
 proc_add:
     svc 0x00
     push {lr}
-    blx add_proc_to_gloabl_list
+    blx add_proc_to_global_list
     svc 0x00
     pop {lr}
     bx lr

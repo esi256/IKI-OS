@@ -26,11 +26,13 @@ exit:
     .type enable_interrupts, %function
 enable_interrupts:
     CPSIE I
+    bx lr
 
     .global disable_interrupts
     .type disable_interrupts, %function
 disable_interrupts:
     CPSID I
+    bx lr
 
     .global get_contorl_reg
     .type get_contorl_reg, %function

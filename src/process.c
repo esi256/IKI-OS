@@ -189,6 +189,7 @@ void wakeup_procs(void)
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
+// fix the 10 hardcode
 void select_next_proc(uint32_t is_proc_waken_up)
 {
     struct process *pt, *pt1;

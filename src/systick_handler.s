@@ -5,10 +5,10 @@
   .set SCB_BASE, 0xE000ED00
   .set SCB_ICSR_PENDSVSET_Msk, 0x10000000
 
-  .section .bss
-  .align 4
-status:
-  .word 0
+@   .section .bss
+@   .align 4
+@ contxt_switch_status:
+@   .word 0
 
   .section .text
   .extern cur_proc_pointer
@@ -18,33 +18,26 @@ status:
   .extern timeslice_turn_tick
   .extern select_next_proc
   .extern timer_reset  
+  .extern has_timeslice_turn_reached
+  .extern is_proc_woken
 
   .global systick_handler
   .type systick_handler, %function
 systick_handler:
-  ldr r1, =system_ticks
-  ldr r2, [r1]
-  add r2, #1
-  str r2, [r1]
-  ldr r1, =earliest_wakeup_tick
-  ldr r1, [r1]
-  cmp r2, r1
-  blo second_cond
   push {r2, lr}
-  bl wakeup_procs
-  pop {r2, lr}
-  mov r0, #1
-  ldr r3, =status
-  str r0, [r3]
+  ldr r0, =system_ticks
+  ldr r1, [r0]
+  add r1, #1
+  str r1, [r0]
+  bl has_timeslice_turn_reached
+  cmp r0, #1
+  bne second_cond
   b call_pendSV
 second_cond:
-  ldr r1, =timeslice_turn_tick
-  ldr r1, [r1]
-  cmp r2, r1
-  blo exit_systick_handler
-  mov r0, #0
-  ldr r3, =status
-  str r0, [r3]  
+  bl is_proc_woken
+  cmp r0, #1
+  bne exit_systick_handler
+  bl wakeup_procs
 call_pendSV:
   ldr r1, =SCB_BASE
   add r1, #4
@@ -52,8 +45,8 @@ call_pendSV:
   ldr r0, =SCB_ICSR_PENDSVSET_Msk
   orr r3, r0
   str r3, [r1]
-
 exit_systick_handler:
+  pop {r2,lr}
   bx lr
 
   .global PendSV_Handler
@@ -77,8 +70,8 @@ PendSV_Handler:
   str r0, [r1, #8]
   
 /* Selcet the next process */
-  ldr r0, =status
-  ldr r0, [r0]
+  @ ldr r0, =status
+  @ ldr r0, [r0]
   bl select_next_proc
   ldr r0, =cur_proc_pointer
   ldr r0, [r0]
@@ -100,4 +93,3 @@ PendSV_Handler:
   msr control, r2
   isb
   bx lr  
-  

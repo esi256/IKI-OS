@@ -14,10 +14,20 @@
 
 #define MAX_UNPRIVILAGED_UPROC  MPU_MAX_SEGMENTS
 
-
 enum proc_states {
     proc_blocked,
     proc_ready
+};
+
+enum context_switch_states {
+    cs_st_initial_state,
+    cs_st_after_initial_state,
+    cs_st_a_process_is_woken,
+    cs_st_cur_process_is_suspended,
+    cs_st_cur_process_is_removed,
+    cs_st_time_limit_has_reached,
+    cs_st_no_ready_proc_exist,
+    cs_st_no_proc_exist
 };
 
 /* The order of struct should not be changed, 

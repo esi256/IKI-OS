@@ -18,7 +18,6 @@ uint32_t cur_proc_pointer;
 uint32_t system_ticks;
 uint32_t earliest_wakeup_tick;
 uint32_t timeslice_turn_tick;
-uint32_t schedule_state;
 uint32_t context_switch_status;
 
 uint32_t compare_based_priority(struct list *p1, struct list *p2)
@@ -110,6 +109,11 @@ uint8_t get_pid(void)
     return tsk_glob.available_pid++;
 }
 
+void call_imm_pendsv()
+{
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+}
+
 void run_procs(void)
 {
     struct list *t;
@@ -120,15 +124,15 @@ void run_procs(void)
         context_switch_status = cs_st_no_proc_exist;
         return;
     }
-    cur_proc_pointer = (uint32_t) &kproc;
-    tsk_glob.cur_proc = NULL;
-    tsk_glob.is_timer_pending = 0;
     /* should make this as a config and make structures to turn tick to s */
     timeslice_turn_tick = 1;
     earliest_wakeup_tick = NO_PROCESS_TO_WAKUP;
-    schedule_state = NO_CURRENT_PROC_STATE;
     context_switch_status = cs_st_initial_state;
+    cur_proc_pointer = (uint32_t) &kproc;
+    tsk_glob.cur_proc = NULL;
+    tsk_glob.is_timer_pending = 0;
     timer_enable();
+    call_imm_pendsv();
 }
 
 void proc_detach(void)
@@ -138,7 +142,7 @@ void proc_detach(void)
     if (tsk_glob.is_timer_pending) {
         timer_enable_call();
     }
-    /* the space for process will not be delated */
+    /* the space for process will not be freed */
     tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs, tsk_glob.cur_proc);
     /* make a change for state that current proc should change */
     tsk_glob.cur_proc = NULL;
@@ -146,8 +150,7 @@ void proc_detach(void)
         context_switch_status = cs_st_no_ready_proc_exist;
     else
         context_switch_status = cs_st_cur_process_is_removed;
-    /* write call the pendSV more cleaner*/
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    call_imm_pendsv();
 }
 
 void suspend_cur_proc(uint32_t ticks)
@@ -169,8 +172,7 @@ void suspend_cur_proc(uint32_t ticks)
         context_switch_status = cs_st_no_ready_proc_exist;
     else
         context_switch_status = cs_st_cur_process_is_suspended;
-    /* write call the pendSV more cleaner*/
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    call_imm_pendsv();
 }
 
 /* This function will be only called when a task is going to be waken up 
@@ -193,7 +195,6 @@ void wakeup_procs(void)
 uint8_t has_timeslice_turn_reached(void)
 {
     if (system_ticks >= timeslice_turn_tick) {
-        if (context_switch_status != cs_st_initial_state)
             context_switch_status = cs_st_time_limit_has_reached;
         return 1;
     }
@@ -209,6 +210,12 @@ uint8_t is_proc_woken(void)
     return 0;
 }
 
+void switch_to(struct list *node)
+{
+    cur_proc_pointer = (uint32_t) node->data;
+    tsk_glob.cur_proc = node;
+}
+
 // fix the 10 hardcode
 void select_next_proc()
 {
@@ -218,11 +225,9 @@ void select_next_proc()
 
     switch (context_switch_status) {
         case cs_st_initial_state:
-            context_switch_status = cs_st_after_initial_state;
         case cs_st_cur_process_is_suspended:
         case cs_st_cur_process_is_removed:
-            cur_proc_pointer = (uint32_t) tsk_glob.ready_uprocs->data;
-            tsk_glob.cur_proc = tsk_glob.ready_uprocs;
+            switch_to(tsk_glob.ready_uprocs);
             break;
         case cs_st_no_ready_proc_exist:
         case cs_st_no_proc_exist:
@@ -236,9 +241,9 @@ void select_next_proc()
             // cur_proc == NULL means idle: always take the woken process
             if (!tsk_glob.cur_proc ||
                 pt1->priority > ((struct process *) tsk_glob.cur_proc->data)->priority) {
-                cur_proc_pointer = (uint32_t) pt1;
-                tsk_glob.cur_proc = tsk_glob.ready_uprocs;
-            } else {
+                switch_to(tsk_glob.ready_uprocs);
+            } 
+            else {
                 time_tick_flag = 0;
             }
             break;

@@ -110,17 +110,6 @@ uint8_t get_pid(void)
     return tsk_glob.available_pid++;
 }
 
-uint32_t get_stack_address(void)
-{
-    uint32_t sp;
-
-    __ASM volatile (
-        "mov %0, sp"
-        : "=r"(sp)
-    );
-    return sp;
-}
-
 void run_procs(void)
 {
     struct list *t;
@@ -199,7 +188,6 @@ void wakeup_procs(void)
         earliest_wakeup_tick = ((struct process *)tsk_glob.blocked_uprocs->data)->wakeup_tick;
     else
         earliest_wakeup_tick = NO_PROCESS_TO_WAKUP;
-    // SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 uint8_t has_timeslice_turn_reached(void)

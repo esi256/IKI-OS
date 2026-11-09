@@ -100,9 +100,11 @@ struct process *init_user_proc(struct proc_setting *st)
 
 uint8_t add_proc_to_global_list(struct process *proc)
 {
+    __disable_irq();
     struct list *nn = list_node_create((void *)proc);
     tsk_glob.ready_uprocs = list_add_node_func_based(tsk_glob.ready_uprocs, nn, compare_based_priority);
     tsk_glob.nprocs++;
+    __enable_irq();
     return 1;
 }
 
@@ -139,6 +141,7 @@ void run_procs(void)
 
 void proc_detach(void)
 {
+    __disable_irq();
     ((struct process *)cur_proc_pointer)->state = 0;
     tsk_glob.nprocs--;
     if (tsk_glob.is_timer_pending) {
@@ -153,6 +156,7 @@ void proc_detach(void)
     else
         context_switch_status = cs_st_cur_process_is_removed;
     call_imm_pendsv();
+    __enable_irq();
 }
 
 void suspend_cur_proc(uint32_t ticks)
@@ -167,14 +171,13 @@ void suspend_cur_proc(uint32_t ticks)
     tsk_glob.blocked_uprocs = list_add_node_func_based(tsk_glob.blocked_uprocs, t, compare_based_time);
     if (earliest_wakeup_tick > ((struct process *)cur_proc_pointer)->wakeup_tick || earliest_wakeup_tick == NO_PROCESS_TO_WAKUP)
         earliest_wakeup_tick = ((struct process *)cur_proc_pointer)->wakeup_tick;
-    __enable_irq();
-
     tsk_glob.cur_proc = NULL;
     if (!tsk_glob.ready_uprocs)
         context_switch_status = cs_st_no_ready_proc_exist;
     else
         context_switch_status = cs_st_cur_process_is_suspended;
     call_imm_pendsv();
+    __enable_irq();
 }
 
 /* This function will be only called when a task is going to be waken up 

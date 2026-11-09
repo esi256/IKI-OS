@@ -185,12 +185,19 @@ void suspend_cur_proc(uint32_t ticks)
 void wakeup_procs(void)
 {
     struct list *t;
-    
-    ((struct process *)tsk_glob.blocked_uprocs->data)->wakeup_tick = 0;
-    ((struct process *)tsk_glob.blocked_uprocs->data)->state = proc_ready;
+    struct process *tp;
+
     t = tsk_glob.blocked_uprocs;
-    tsk_glob.blocked_uprocs = list_rem_head(tsk_glob.blocked_uprocs);
-    tsk_glob.ready_uprocs = list_add_node_func_based(tsk_glob.ready_uprocs , t, compare_based_priority);
+    while (t) {
+        tp = t->data;
+        if (tp->wakeup_tick > system_ticks)
+            break;
+        tp->wakeup_tick = 0;
+        tp->state = proc_ready;
+        tsk_glob.blocked_uprocs = list_rem_head(tsk_glob.blocked_uprocs);
+        tsk_glob.ready_uprocs = list_add_node_func_based(tsk_glob.ready_uprocs , t, compare_based_priority);
+        t = tsk_glob.blocked_uprocs;
+    }
     if (tsk_glob.blocked_uprocs)
         earliest_wakeup_tick = ((struct process *)tsk_glob.blocked_uprocs->data)->wakeup_tick;
     else

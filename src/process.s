@@ -18,8 +18,6 @@ save_zeros:
     b   save_zeros
 exit:
     add r0, r0, #4
-    /* Should change this line to support privilaged and unprivilaged tasks */
-    msr psp, r0
     bx lr 
 
     .global enable_interrupts

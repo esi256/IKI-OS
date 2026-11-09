@@ -6,6 +6,7 @@
 #include <mpu.h>
 
 #define NO_PROCESS_TO_WAKUP 0xFFFFFFFF
+#define NO_PROCESS_TO_TIMESLICE 0xFFFFFFFF
 
 #define NO_CURRENT_PROC_STATE 0x00
 #define APROC_WAKEDUP_STATE   0x01
@@ -13,7 +14,7 @@
 #define ALL_TASKS_ENDED_STATE 0x03
 #define NORMAL_STATE          0x04
 
-#define MAX_UNPRIVILAGED_UPROC  MPU_MAX_SEGMENTS
+#define MAX_UNPRIVILAGED_UPROC  MPU_MAX_SEGMENTS - 3
 
 enum proc_states {
     proc_blocked,
@@ -41,7 +42,7 @@ struct process {
     int8_t pid;
     int8_t priority;
     int8_t state;
-    int8_t nop2;
+    int8_t nop;
     uint32_t wakeup_tick;
     uint32_t stack_base_addr;
     uint32_t stack_size;

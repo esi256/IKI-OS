@@ -2,11 +2,11 @@
     .syntax unified
     .thumb
 
-    .global floor_pow2
-    .type floor_pow2, %function
-floor_pow2:
-    clz r0, r0
-    bx lr
+@     .global floor_pow2
+@     .type floor_pow2, %function
+@ floor_pow2:
+@     clz r0, r0
+@     bx lr
 
     .global round_up_pow2
     .type round_up_pow2, %function

@@ -111,7 +111,7 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
         return NULL;
     if ((user_heap_addr % (sizet))) {
         t = make_address_align(user_heap_addr, sizet);
-        if (t >= user_heap_end || (sizet) > (user_heap_end-user_heap_addr))
+        if (t+sizet > user_heap_end)
             return NULL;
         user_heap_addr = t;
     }

@@ -144,9 +144,6 @@ void proc_detach(void)
     __disable_irq();
     ((struct process *)cur_proc_pointer)->state = 0;
     tsk_glob.nprocs--;
-    if (tsk_glob.is_timer_pending) {
-        timer_enable_call();
-    }
     /* the space for process will not be freed */
     tsk_glob.ready_uprocs = list_rem_node(tsk_glob.ready_uprocs, tsk_glob.cur_proc);
     /* make a change for state that current proc should change */
@@ -245,7 +242,7 @@ void select_next_proc()
         case cs_st_no_proc_exist:
             cur_proc_pointer = (uint32_t) &kproc;
             tsk_glob.cur_proc = NULL;
-            timeslice_turn_tick = NO_PROCESS_TO_WAKUP;   /* no slice while idle */
+            timeslice_turn_tick = NO_PROCESS_TO_TIMESLICE;   /* no slice while idle */
             time_tick_flag = 0;           
             break;
         case cs_st_a_process_is_woken:

@@ -2,6 +2,7 @@
 #define MPU_H
 
 #include <cmsis.h>
+#include <kernel_error.h>
 
 #define MPU_MIN_SEG_SIZE 32
 #define MPU_MIN_SEG_SIZE_LOG 5

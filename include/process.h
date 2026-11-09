@@ -79,6 +79,8 @@ void init_idle_proc(void (*) (void));
 struct process *init_user_proc(struct proc_setting *st);
 uint32_t get_stack_address(void);
 uint8_t add_proc_to_global_list(struct process *proc);
+void proc_detach(void);
+
 void suspend_cur_proc(uint32_t ticks);
 
 void run_procs(void);

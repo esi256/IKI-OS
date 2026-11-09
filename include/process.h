@@ -2,6 +2,7 @@
 #define PROCESS_H
 
 #include <cmsis.h>
+#include <list.h>
 #include <mpu.h>
 
 #define NO_PROCESS_TO_WAKUP 0xFFFFFFFF
@@ -44,6 +45,7 @@ struct process {
     uint32_t wakeup_tick;
     uint32_t stack_base_addr;
     uint32_t stack_size;
+    struct io_buffer *buffer;
 };
 
 struct idle_proc {

@@ -1,5 +1,5 @@
-#include "usart.h"
-#include "buffer.h"
+#include <usart.h>
+#include <io.h>
 
 void usart_configure(USART_TypeDef *USARTx)
 {
@@ -21,7 +21,7 @@ void usart_configure(USART_TypeDef *USARTx)
     USARTx->CR1 |= USART_CR1_UE;
 }
 
-void usart_write(USART_TypeDef *USARTx, struct usart_buffer *usartx_buffer)
+void usart_write(USART_TypeDef *USARTx, struct io_buffer *usartx_buffer)
 {
     // if (!(USARTx->SR & USART_SR_TXE))
     //     return;
@@ -39,7 +39,7 @@ void usart_write(USART_TypeDef *USARTx, struct usart_buffer *usartx_buffer)
     void *data = usartx_buffer->buffer;
 
     for (usartx_buffer->buffer_index = 0;
-         usartx_buffer->buffer_index <= usartx_buffer->buffer_size - 1;
+         usartx_buffer->buffer_index < usartx_buffer->buffer_size;
          usartx_buffer->buffer_index++) {
 
         while (!(USARTx->SR & USART_SR_TXE))
@@ -55,13 +55,13 @@ void usart1_transmit_init(void)
     usart_configure(USART1);
 }
 
-void usart1_transmit(void)
+void usart1_transmit(struct io_buffer *usart1_buffer)
 {
     // USART1->CR1 |= USART_CR1_TXEIE;
-    usart_write(USART1, &usart1_buffer);
+    usart_write(USART1, usart1_buffer);
 }
 
-void USART1_IRQHandler()
-{
-    usart_write(USART1, &usart1_buffer);
-}
+// void USART1_IRQHandler()
+// {
+//     usart_write(USART1, &usart1_buffer);
+// }

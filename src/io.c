@@ -1,12 +1,14 @@
 #include <io.h>
-#include <buffer.h>
 #include <usart.h>
+#include <process.h>
 
 void console_write(void *buff, uint32_t len)
 {
-    usart1_buffer.buffer = buff;
-    usart1_buffer.buffer_index = 0;
-    usart1_buffer.buffer_size = len;
+    struct process *cur_tsk = tsk_glob.cur_proc->data;
 
-    usart1_transmit();
+    cur_tsk->buffer->buffer = buff;
+    cur_tsk->buffer->buffer_index = 0;
+    cur_tsk->buffer->buffer_size = len;
+
+    usart1_transmit(cur_tsk->buffer);
 }

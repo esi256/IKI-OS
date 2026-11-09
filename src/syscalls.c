@@ -1,7 +1,5 @@
 #include <cmsis.h>
-#include <buffer.h>
 #include <process.h>
-#include <mem.h>
 #include <io.h>
 #include <timer.h>
 

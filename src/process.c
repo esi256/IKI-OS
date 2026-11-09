@@ -83,6 +83,8 @@ struct process *init_user_proc(struct proc_setting *st)
     tsk->pid = get_pid() + 3;
     tsk->priority = st->priority;
     tsk->state = 1;
+    tsz = sizeof(struct io_buffer);
+    tsk->buffer = (struct io_buffer *) kalloc(&tsz);
     tsk->stack_size = 2048;
     tsk->stack_base_addr = ((uint32_t) uproc_stack_allocate(tsk->pid ,&tsk->stack_size));
     if (!tsk->stack_base_addr)

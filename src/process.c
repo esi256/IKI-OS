@@ -55,7 +55,7 @@ void init_global_config(void)
 
     system_ticks = 0;
     earliest_wakeup_tick = NO_PROCESS_TO_WAKUP;
-    timeslice_turn_tick = 0;
+    timeslice_turn_tick = NO_PROCESS_TO_TIMESLICE;
 }
 
 void init_idle_proc(void (*func) (void))

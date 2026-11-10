@@ -30,7 +30,7 @@ svc_handler:
     ldmia r4, {r0-r3}
     /* call the system call and save the return value*/
     blx r5
-    str r4, [r0]
+    str r0, [r4]
 exit_svc_handler:
     pop {r4, r5, lr}
     cpsie I
@@ -57,7 +57,7 @@ proc_init:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x04
+    svceq 0x01
     blxne init_user_proc
     pop {r4, lr}   
     bx lr
@@ -70,7 +70,7 @@ proc_add:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x08
+    svceq 0x02
     blxne add_proc_to_global_list
     pop {r4, lr}   
     bx lr
@@ -83,7 +83,7 @@ proc_remove:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x0c
+    svceq 0x03
     blxne proc_detach
     pop {r4, lr}   
     bx lr
@@ -96,7 +96,7 @@ timer_enable_call:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x10
+    svceq 0x04
     blxne timer_enable
     pop {r4, lr}   
     bx lr
@@ -109,7 +109,7 @@ timer_disable_call:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x14
+    svceq 0x05
     blxne timer_disable
     pop {r4, lr}   
     bx lr
@@ -122,7 +122,7 @@ sleep:
     and r4, #1
     cmp r4, #1
     ite eq
-    svceq 0x18
+    svceq 0x06
     blxne suspend_cur_proc
     pop {r4, lr}   
     bx lr

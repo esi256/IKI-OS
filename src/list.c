@@ -22,10 +22,11 @@ struct list *list_add_node(struct list *head, struct list *node)
 {
     struct list *t = head;
 
-    if (!node)
-        return NULL;
     if (!t)
         return node;
+    if (!node)
+        return head;
+
 
     while (t->next != NULL)
         t = t->next;
@@ -48,10 +49,10 @@ list_add_node_func_based(struct list *head, struct list *node, uint32_t (*comp)(
 {
     struct list *t = head, *t1 = NULL;
 
-    if (!node)
-        return NULL;
     if (!t)
         return node;
+    if (!node)
+        return t;
 
     if (comp(node, t)) {
         node->next = t;

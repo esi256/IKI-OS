@@ -25,7 +25,7 @@ uint32_t compare_based_priority(struct list *p1, struct list *p2)
     struct process *t = (struct process *)p1->data;
     struct process *t1 = (struct process *)p2->data;
 
-    return (t->priority >= t1->priority);
+    return (t->priority > t1->priority);
 }
 
 uint32_t compare_based_time(struct list *p1, struct list *p2)
@@ -100,14 +100,16 @@ struct process *init_user_proc(struct proc_setting *st)
     return tsk;
 }
 
-uint8_t add_proc_to_global_list(struct process *proc)
+enum kernel_error add_proc_to_global_list(struct process *proc)
 {
     __disable_irq();
     struct list *nn = list_node_create((void *)proc);
+    if(!nn)
+        return ERR_MEM_NO_SPACE_FOR_KERNEL;
     tsk_glob.ready_uprocs = list_add_node_func_based(tsk_glob.ready_uprocs, nn, compare_based_priority);
     tsk_glob.nprocs++;
     __enable_irq();
-    return 1;
+    return ERR_OK;
 }
 
 uint8_t get_pid(void)

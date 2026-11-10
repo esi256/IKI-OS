@@ -20,7 +20,7 @@ int main(void)
     NVIC_SetPriority(SVCall_IRQn, 0xFF);
     NVIC_SetPriority(USART1_IRQn, 0xFF);
     NVIC_SetPriority(SysTick_IRQn, 0x01);
-
+    usart1_transmit_init();
     if ((err = memory_map_init()) != ERR_OK)
         error_handler(err);
     init_global_config();

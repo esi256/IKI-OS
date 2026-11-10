@@ -95,7 +95,6 @@ LoopFillZerobss:
   @ bl __libc_init_array
   
 /* Call the application's entry point.*/
-  bl usart1_transmit_init
   bl main
 
 LoopForever:

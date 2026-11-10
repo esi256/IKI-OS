@@ -119,7 +119,7 @@ uint32_t *uproc_stack_allocate(uint8_t id ,uint32_t *size)
     struct mpu_op up_stack_ops = {
         .addr = user_heap_addr,
         .nseg = id,
-        .size_in_log2 = 32 -__CLZ(sizet),
+        .size_in_log2 = 31 -__CLZ(sizet),
         .mem_type = MPU_MEM_NORMAL_WB_WRA,
         .exe_permission = 0,
         .ap_permission = MPU_AP_FULL_ACCESS

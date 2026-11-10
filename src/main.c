@@ -6,6 +6,7 @@
 #include <timer.h>
 #include <io.h>
 #include <kernel_error.h>
+#include <usart.h>
 
 void kernel_main(void)
 {

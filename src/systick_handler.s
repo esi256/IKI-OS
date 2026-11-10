@@ -5,11 +5,6 @@
   .set SCB_BASE, 0xE000ED00
   .set SCB_ICSR_PENDSVSET_Msk, 0x10000000
 
-@   .section .bss
-@   .align 4
-@ contxt_switch_status:
-@   .word 0
-
   .section .text
   .extern cur_proc_pointer
   .extern system_ticks
@@ -29,15 +24,16 @@ systick_handler:
   ldr r1, [r0]
   add r1, #1
   str r1, [r0]
-  bl has_timeslice_turn_reached
-  cmp r0, #1
-  bne second_cond
-  b call_pendSV
-second_cond:
+  /* First Condition */
   bl is_proc_woken
   cmp r0, #1
-  bne exit_systick_handler
+  bne second_cond
   bl wakeup_procs
+  b call_pendSV
+second_cond:
+  bl has_timeslice_turn_reached
+  cmp r0, #1
+  bne exit_systick_handler
 call_pendSV:
   ldr r1, =SCB_BASE
   add r1, #4
@@ -70,8 +66,6 @@ PendSV_Handler:
   str r0, [r1, #8]
   
 /* Selcet the next process */
-  @ ldr r0, =status
-  @ ldr r0, [r0]
   bl select_next_proc
   ldr r0, =cur_proc_pointer
   ldr r0, [r0]

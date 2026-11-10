@@ -8,7 +8,7 @@ void fun1(void)
     char m1[] = "hello world form fun1\n";
     while (1) {
         write(m1, 23);
-        sleep(5);
+        sleep(200);
     }
 }
 
@@ -17,7 +17,7 @@ void fun2(void)
     char m1[] = "hello world from fun2\n";
     while (2) {
         write(m1, 23);
-        sleep(5);
+        sleep(100);
     }
 }
 
